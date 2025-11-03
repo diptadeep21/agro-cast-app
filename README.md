@@ -1,4 +1,4 @@
-## Weather App (Flask + OpenWeather)
+## Weather App (Flask + OpenWeatherAPI)
 
 A simple Flask app that fetches current weather by city using the OpenWeather API. Includes a responsive Bootstrap UI, error handling, and Docker support.
 
