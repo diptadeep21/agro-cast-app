@@ -547,6 +547,20 @@
                             <option>Maize</option>
                             <option>Cotton</option>
                             <option>Sugarcane</option>
+                            <option>Sorghum (Jowar)</option>
+                            <option>Pearl Millet (Bajra)</option>
+                            <option>Pigeon Pea (Arhar)</option>
+                            <option>Chickpea (Chana)</option>
+                            <option>Mustard</option>
+                            <option>Groundnut</option>
+                            <option>Soybean</option>
+                            <option>Barley</option>
+                            <option>Tea</option>
+                            <option>Coffee</option>
+                            <option>Banana</option>
+                            <option>Potato</option>
+                            <option>Onion</option>
+                            <option>Tomato</option>
                         </select>
                     </div>
 
@@ -586,6 +600,16 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- Location-based crop recommendations -->
+            <div class="card agri-card">
+                <div class="agri-header">
+                    <h4>📈 Recommended Crops for {{ city }}</h4>
+                </div>
+                <div class="agri-body">
+                    <div id="avg-stats" class="text-muted mb-3" style="font-size:14px;"></div>
+                    <div id="crop-recos" class="row"></div>
                 </div>
             </div>
         {% endif %}
@@ -702,7 +726,7 @@
                     var humidity = {{ weather_data['main']['humidity'] if weather_data else 0 }};
                     var rainfall = {{ (weather_data.get('rain', {}).get('1h') or weather_data.get('rain', {}).get('3h') or 0) if weather_data else 0 }};
 
-                    var params = new URLSearchParams({ crop: crop, temperature: temperature, humidity: humidity, rainfall: rainfall });
+                    var params = new URLSearchParams({ crop: crop, temperature: temperature, humidity: humidity, rainfall: rainfall, city: '{{ city }}' });
                     fetch('/agriculture/recommendation?' + params.toString())
                         .then(function(res){ return res.json(); })
                         .then(function(data){
@@ -758,6 +782,37 @@
                         })
                         .catch(function(){ /* ignore */ });
                 });
+            }
+
+            // Fetch location-based crop recommendations using forecast averages
+            var cropRecos = document.getElementById('crop-recos');
+            var avgStats = document.getElementById('avg-stats');
+            if (cropRecos && avgStats) {
+                var params = new URLSearchParams({ city: '{{ city }}' });
+                fetch('/agriculture/crop-recommendations?' + params.toString())
+                    .then(function(res){ return res.json(); })
+                    .then(function(data){
+                        if (data && data.recommendedCrops) {
+                            var av = data.averages || {};
+                            var avgText = [];
+                            if (av.avgTemp != null) avgText.push('Avg Temp: ' + av.avgTemp + '°C');
+                            if (av.avgHumidity != null) avgText.push('Avg Humidity: ' + av.avgHumidity + '%');
+                            if (av.avgRainfall != null) avgText.push('Total Rain (3d): ' + av.avgRainfall + ' mm');
+                            avgStats.textContent = avgText.join(' • ');
+                            cropRecos.innerHTML = '';
+                            if (data.recommendedCrops.length === 0) {
+                                cropRecos.innerHTML = '<div class="col-12 text-muted">No strong matches based on average weather. Consider protected cultivation or irrigation planning.</div>';
+                                return;
+                            }
+                            data.recommendedCrops.forEach(function(name){
+                                var col = document.createElement('div');
+                                col.className = 'col-md-4 mb-3';
+                                col.innerHTML = '<div class="suggestion-item"><div class="suggestion-value">' + name + '</div></div>';
+                                cropRecos.appendChild(col);
+                            });
+                        }
+                    })
+                    .catch(function(){ /* ignore */ })
             }
         });
     </script>
