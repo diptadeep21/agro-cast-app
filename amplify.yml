@@ -8,7 +8,14 @@ frontend:
   phases:
     preBuild:
       commands:
-        - git submodule update --init --recursive
+        - echo "PreBuild phase - checking for submodules"
+        - |
+          if [ -f .gitmodules ]; then
+            echo "Found .gitmodules, updating submodules..."
+            git submodule update --init --recursive || echo "Submodule update failed, continuing..."
+          else
+            echo "No .gitmodules found, skipping submodule update"
+          fi
     build:
       commands:
         - npm install
