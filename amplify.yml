@@ -1,39 +1,37 @@
 version: 1
 # AWS Amplify build configuration for Python Flask application
-# Note: Amplify Hosting is designed for static sites. For Flask backends,
-# consider using AWS Elastic Beanstalk instead (see AWS_QUICK_START.md)
+# This file MUST be in the root of your repository and committed to Git
 
 backend:
   phases:
     build:
       commands:
-        - echo "Backend build phase - no build needed for this setup"
+        - echo "Backend build phase - no backend configured"
 
 frontend:
   phases:
     preBuild:
       commands:
-        # Install Python 3.8 or 3.9
-        - echo "Installing Python..."
-        - python3 --version || echo "Python not found"
-        - pip3 install --upgrade pip || echo "pip upgrade failed"
+        # Skip npm install - this is a Python project
+        - echo "Skipping npm install - this is a Python Flask application"
+        # Install Python 3
+        - echo "Installing Python dependencies..."
+        - python3 --version
+        - pip3 install --upgrade pip --user
         # Install Python dependencies
-        - echo "Installing Python dependencies from requirements.txt"
-        - pip3 install -r requirements.txt || echo "Dependencies installation failed"
+        - pip3 install -r requirements.txt --user
     build:
       commands:
-        - echo "Build phase complete"
-        - echo "Note: Amplify Hosting cannot run Flask servers directly"
-        - echo "Consider deploying to Elastic Beanstalk instead"
+        - echo "Build complete - Python Flask application"
+        - echo "⚠️ Note: Amplify Hosting cannot run Flask servers directly"
+        - echo "For full Flask backend, use AWS Elastic Beanstalk instead"
+        - ls -la
   artifacts:
     baseDirectory: /
     files:
       - '**/*'
-    # Exclude unnecessary files
-    discard-paths: false
   cache:
     paths:
-      - 'venv/**/*'
-      - '__pycache__/**/*'
-      - '.pip-cache/**/*'
+      - '**/__pycache__/**/*'
+      - '**/.pip-cache/**/*'
 
