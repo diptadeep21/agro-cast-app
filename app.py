@@ -5,6 +5,14 @@ import os
 
 app = Flask(__name__)
 
+# Add CORS headers to allow frontend (Amplify) to call backend API
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+    return response
+
 def get_weather(api_key, city):
     base_url = "https://api.openweathermap.org/data/2.5/weather"
     params = {
@@ -462,6 +470,23 @@ def recommend_crops_from_averages(avgTemp, avgHumidity, avgRainfall):
         if t_ok and h_ok and r_ok:
             recos.append(rule['name'])
     return recos[:10]
+
+@app.route('/api/weather', methods=['GET'])
+def api_weather():
+    """API endpoint for weather data - used by static frontend"""
+    city = (request.args.get('city') or '').strip()
+    if not city:
+        return jsonify({ 'ok': False, 'error': 'City is required' }), 400
+    
+    api_key = os.environ.get('OPENWEATHER_API_KEY') or getattr(var, 'key', '')
+    if not api_key:
+        return jsonify({ 'ok': False, 'error': 'API key is not configured' }), 500
+    
+    w = get_weather(api_key, city)
+    if w.get('ok'):
+        return jsonify({ 'ok': True, 'data': w.get('data') }), 200
+    else:
+        return jsonify({ 'ok': False, 'error': w.get('error') }), 502
 
 @app.route('/agriculture/recommendation', methods=['GET'])
 def agriculture_recommendation():

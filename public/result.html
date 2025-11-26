@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="api-url" content="">
     <title>AgroCast – Results</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -383,8 +384,31 @@
 
         let weatherData = null;
 
-        // Netlify function base URL
-        const API_BASE = '/.netlify/functions';
+        // Backend API base URL configuration
+        // Since Amplify only serves static files, you need to deploy Flask backend separately
+        // Option 1: Deploy Flask to Elastic Beanstalk and set API_URL in Amplify environment variables
+        // Option 2: Use a proxy/rewrite rule (see amplify.yml redirects)
+        
+        // Get API base URL from config or environment
+        const API_BASE = (function() {
+            // Priority 1: Check window config (set by config.js or meta tag)
+            if (window.AGROCAST_CONFIG && window.AGROCAST_CONFIG.API_BASE) {
+                return window.AGROCAST_CONFIG.API_BASE;
+            }
+            // Priority 2: Check meta tag (can be set in HTML head)
+            const metaApiUrl = document.querySelector('meta[name="api-url"]');
+            if (metaApiUrl && metaApiUrl.content) {
+                return metaApiUrl.content;
+            }
+            // Priority 3: Check for global API_URL variable
+            if (typeof window !== 'undefined' && window.API_URL) {
+                return window.API_URL;
+            }
+            // Default: empty means relative paths (won't work on Amplify without backend)
+            // For now, we'll show an error if API_BASE is empty
+            console.warn('API_BASE not configured. Please set API_URL in Amplify environment variables.');
+            return '';
+        })();
 
         // Fetch weather data on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -398,8 +422,28 @@
         });
 
         function fetchWeatherData(city) {
-            fetch(`${API_BASE}/weather?city=${encodeURIComponent(city)}`)
-                .then(res => res.json())
+            // Check if API_BASE is configured
+            if (!API_BASE) {
+                showError('Backend API not configured. Please deploy Flask backend and set API_URL in Amplify environment variables. See API_SETUP.md for instructions.');
+                return;
+            }
+            
+            // Use Flask API endpoint
+            const weatherUrl = `${API_BASE}/api/weather`;
+            console.log('Fetching weather from:', weatherUrl);
+            
+            fetch(`${weatherUrl}?city=${encodeURIComponent(city)}`)
+                .then(res => {
+                    // Check if response is JSON
+                    const contentType = res.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        return res.text().then(text => {
+                            console.error('Non-JSON response:', text);
+                            throw new Error('Server returned HTML instead of JSON. Is the backend API deployed?');
+                        });
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     document.getElementById('loadingMessage').style.display = 'none';
                     
@@ -441,7 +485,8 @@
                 const humidity = data.main.humidity;
                 const rainfall = (data.rain && (data.rain['1h'] || data.rain['3h'])) || 0;
 
-                fetch(`${API_BASE}/agriculture-recommendation?crop=${encodeURIComponent(crop)}&temperature=${temperature}&humidity=${humidity}&rainfall=${rainfall}&city=${encodeURIComponent(city)}`)
+                const agriUrl = API_BASE ? `${API_BASE}/agriculture/recommendation` : `/agriculture/recommendation`;
+                fetch(`${agriUrl}?crop=${encodeURIComponent(crop)}&temperature=${temperature}&humidity=${humidity}&rainfall=${rainfall}&city=${encodeURIComponent(city)}`)
                     .then(res => res.json())
                     .then(agriData => {
                         displayAgricultureRecommendation(agriData);
@@ -501,7 +546,8 @@
         }
 
         function fetchCropRecommendations(city) {
-            fetch(`${API_BASE}/crop-recommendations?city=${encodeURIComponent(city)}`)
+            const cropUrl = API_BASE ? `${API_BASE}/agriculture/crop-recommendations` : `/agriculture/crop-recommendations`;
+            fetch(`${cropUrl}?city=${encodeURIComponent(city)}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.recommendedCrops) {
