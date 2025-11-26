@@ -1,0 +1,39 @@
+version: 1
+# AWS Amplify build configuration for Python Flask application
+# Note: Amplify Hosting is designed for static sites. For Flask backends,
+# consider using AWS Elastic Beanstalk instead (see AWS_QUICK_START.md)
+
+backend:
+  phases:
+    build:
+      commands:
+        - echo "Backend build phase - no build needed for this setup"
+
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Install Python 3.8 or 3.9
+        - echo "Installing Python..."
+        - python3 --version || echo "Python not found"
+        - pip3 install --upgrade pip || echo "pip upgrade failed"
+        # Install Python dependencies
+        - echo "Installing Python dependencies from requirements.txt"
+        - pip3 install -r requirements.txt || echo "Dependencies installation failed"
+    build:
+      commands:
+        - echo "Build phase complete"
+        - echo "Note: Amplify Hosting cannot run Flask servers directly"
+        - echo "Consider deploying to Elastic Beanstalk instead"
+  artifacts:
+    baseDirectory: /
+    files:
+      - '**/*'
+    # Exclude unnecessary files
+    discard-paths: false
+  cache:
+    paths:
+      - 'venv/**/*'
+      - '__pycache__/**/*'
+      - '.pip-cache/**/*'
+
