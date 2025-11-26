@@ -1,0 +1,26 @@
+{
+  "serviceName": "agrocast-service",
+  "cluster": "agrocast-cluster",
+  "taskDefinition": "agrocast-app",
+  "desiredCount": 1,
+  "launchType": "FARGATE",
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": [
+        "subnet-xxxxxxxxx",
+        "subnet-yyyyyyyyy"
+      ],
+      "securityGroups": [
+        "sg-xxxxxxxxx"
+      ],
+      "assignPublicIp": "ENABLED"
+    }
+  },
+  "loadBalancer": {
+    "targetGroupArn": "arn:aws:elasticloadbalancing:region:account:targetgroup/agrocast-tg/xxxxxxxxx",
+    "containerName": "agrocast-container",
+    "containerPort": 8080
+  },
+  "healthCheckGracePeriodSeconds": 60
+}
+

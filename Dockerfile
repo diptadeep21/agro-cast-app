@@ -16,5 +16,8 @@ COPY . .
 # Expose the port that the app will run on
 EXPOSE 8080
 
-# Define the command to run your application
-CMD ["python", "app.py"]
+# Use gunicorn for production (WSGI HTTP Server)
+# Workers: 2 * CPU cores + 1 (for 1 CPU, that's 3 workers)
+# Bind to 0.0.0.0 to accept connections from outside the container
+# Timeout increased for API calls
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "3", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
