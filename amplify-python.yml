@@ -1,0 +1,30 @@
+version: 1
+# Python Flask application configuration for AWS Amplify
+# Use this file if you want to deploy your Flask app
+
+frontend:
+  env:
+    variables:
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY}
+      PYTHON_VERSION: "3.8"
+  phases:
+    preBuild:
+      commands:
+        - echo "Installing Python dependencies..."
+        - python3 --version
+        - pip3 install --upgrade pip --user
+        - pip3 install -r requirements.txt --user
+    build:
+      commands:
+        - echo "Build complete - Python Flask application"
+        - echo "Note: Amplify Hosting cannot run Flask servers directly"
+        - echo "For full Flask backend, use AWS Elastic Beanstalk instead"
+  artifacts:
+    baseDirectory: /
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - "**/__pycache__/**/*"
+      - "**/.pip-cache/**/*"
+

@@ -1,0 +1,26 @@
+{
+  "name": "agrocast-app",
+  "version": "1.0.0",
+  "description": "AgroCast - Agricultural Weather and Crop Recommendation App",
+  "main": "app.py",
+  "scripts": {
+    "build": "mkdir -p build && cp -r public/* build/ && cp -r templates build/ && echo 'Build completed successfully'",
+    "start": "python app.py",
+    "dev": "python app.py",
+    "install": "echo 'No npm dependencies required - this is a Python Flask app'"
+  },
+  "keywords": [
+    "flask",
+    "python",
+    "weather",
+    "agriculture",
+    "crop-recommendation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
+}
+

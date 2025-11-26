@@ -1,37 +1,21 @@
 version: 1
-# AWS Amplify build configuration for Python Flask application
-# This file MUST be in the root of your repository and committed to Git
-
-backend:
-  phases:
-    build:
-      commands:
-        - echo "Backend build phase - no backend configured"
 
 frontend:
+  env:
+    variables:
+      NODE_ENV: production
+      API_URL: https://api.example.com
   phases:
     preBuild:
       commands:
-        # Skip npm install - this is a Python project
-        - echo "Skipping npm install - this is a Python Flask application"
-        # Install Python 3
-        - echo "Installing Python dependencies..."
-        - python3 --version
-        - pip3 install --upgrade pip --user
-        # Install Python dependencies
-        - pip3 install -r requirements.txt --user
+        - git submodule update --init --recursive
     build:
       commands:
-        - echo "Build complete - Python Flask application"
-        - echo "⚠️ Note: Amplify Hosting cannot run Flask servers directly"
-        - echo "For full Flask backend, use AWS Elastic Beanstalk instead"
-        - ls -la
+        - npm install
+        - npm run build
   artifacts:
-    baseDirectory: /
+    baseDirectory: build
     files:
-      - '**/*'
+      - "**/*"
   cache:
-    paths:
-      - '**/__pycache__/**/*'
-      - '**/.pip-cache/**/*'
-
+    paths: []
