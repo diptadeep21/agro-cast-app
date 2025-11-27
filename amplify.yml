@@ -22,13 +22,17 @@ frontend:
       commands:
         - npm install
         - |
-          # Inject API_URL into HTML files if environment variable is set
+          # Generate api-config.js with API_URL from environment variable
           if [ -n "$API_URL" ]; then
-            echo "Injecting API_URL into HTML files: $API_URL"
-            find public -name "*.html" -type f -exec sed -i.bak "s|<meta name=\"api-url\" content=\"\">|<meta name=\"api-url\" content=\"$API_URL\">|g" {} \; || true
-            find public -name "*.bak" -delete 2>/dev/null || true
+            echo "Generating api-config.js with API_URL: $API_URL"
+            echo "// API Configuration - Auto-generated during build" > public/api-config.js
+            echo "window.AGROCAST_API_URL = '$API_URL';" >> public/api-config.js
+            echo "Generated api-config.js successfully"
           else
-            echo "⚠️ WARNING: API_URL not set. Frontend will not be able to fetch weather data."
+            echo "⚠️ WARNING: API_URL environment variable not set!"
+            echo "Creating empty api-config.js - backend API will not work"
+            echo "// API Configuration - Auto-generated during build" > public/api-config.js
+            echo "window.AGROCAST_API_URL = '';" >> public/api-config.js
             echo "Set API_URL in Amplify Console > App settings > Environment variables"
           fi
         - npm run build

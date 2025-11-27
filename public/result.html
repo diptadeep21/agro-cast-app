@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="api-url" content="">
     <title>AgroCast – Results</title>
+    <script src="/api-config.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -389,24 +390,27 @@
         // Option 1: Deploy Flask to Elastic Beanstalk and set API_URL in Amplify environment variables
         // Option 2: Use a proxy/rewrite rule (see amplify.yml redirects)
         
-        // Get API base URL from config or environment
+        // Get API base URL from config
+        // Priority order:
+        // 1. window.AGROCAST_API_URL (set by api-config.js generated during build)
+        // 2. meta tag api-url
+        // 3. window.API_URL (fallback)
         const API_BASE = (function() {
-            // Priority 1: Check window config (set by config.js or meta tag)
-            if (window.AGROCAST_CONFIG && window.AGROCAST_CONFIG.API_BASE) {
-                return window.AGROCAST_CONFIG.API_BASE;
+            // Priority 1: Check window.AGROCAST_API_URL (injected by build script)
+            if (typeof window !== 'undefined' && window.AGROCAST_API_URL) {
+                return window.AGROCAST_API_URL;
             }
-            // Priority 2: Check meta tag (can be set in HTML head)
+            // Priority 2: Check meta tag
             const metaApiUrl = document.querySelector('meta[name="api-url"]');
             if (metaApiUrl && metaApiUrl.content) {
                 return metaApiUrl.content;
             }
-            // Priority 3: Check for global API_URL variable
+            // Priority 3: Check window.API_URL (legacy)
             if (typeof window !== 'undefined' && window.API_URL) {
                 return window.API_URL;
             }
-            // Default: empty means relative paths (won't work on Amplify without backend)
-            // For now, we'll show an error if API_BASE is empty
-            console.warn('API_BASE not configured. Please set API_URL in Amplify environment variables.');
+            // No API URL found
+            console.error('API_BASE not configured. Backend API URL is required.');
             return '';
         })();
 
